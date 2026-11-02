@@ -24,8 +24,8 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODELS_URL = "https://openrouter.ai/api/v1/models"
 # 1차, 2차, 3차 모델. Streamlit Secrets 의 OPENROUTER_MODELS 로 바꿀 수 있다.
 DEFAULT_MODELS = [
+    "nvidia/nemotron-3-super-120b-a12b:free",  # 공고 예시이자 시연 동영상에서 검사를 통과한 모델
     "openai/gpt-oss-120b:free",
-    "nvidia/nemotron-3-super-120b-a12b:free",
     "qwen/qwen3-coder:free",
 ]
 TIMEOUT_SEC = 120  # 모델 하나의 전체 대기 시간 한도

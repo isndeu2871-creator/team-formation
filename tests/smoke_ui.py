@@ -151,6 +151,12 @@ class FakeApp:
             return app.session.get("_click") == key and app.session.pop("_click") == key
         m.button = button
 
+        def checkbox(label, value=False, key=None, **k):
+            app.reg("checkbox", key)
+            app.session.setdefault(key, value)
+            return app.session[key]
+        m.checkbox = checkbox
+
         def file_uploader(label, key=None, **k):
             app.reg("file_uploader", key)
             return app.session.get(key)

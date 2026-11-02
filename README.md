@@ -25,11 +25,12 @@ AI의 배정안은 앱이 규칙으로 검사하며, AI가 실패하면 2차·3�
 | 마지막 자리에 두 명이 동시에 들어감 | **어려운 해결** | `tf_members`의 `(team_id, slot_no)` 기본 키와 `student_id` 유일 제약, `slot_no between 1 and 4`(schema.sql). 바꾸는 작업은 advisory lock 트랜잭션으로 차례로 처리 |
 | AI 응답이 늦을 때 | **어려운 해결** | 요청을 별도 스레드로 보내고 모델마다 **전체 대기 시간**을 직접 재서 120초가 넘으면 끊고 다음 모델로(`ai.run_with_deadline`) |
 | 3차 모델까지 실패 | **어려운 해결** | 앱이 모든 경우를 따져(완전 탐색, 실패 상태 기억) 검사 5가지를 모두 통과하는 배정을 찾음(`rules.solve`). 배정이 없으면 이유를 보여 줌(`rules.infeasible_reasons`) |
+| (덧붙임) AI 끄기 | - | 관리자 화면의 "AI를 부름" 체크(기본 켜짐)를 끄면 AI 없이 앱이 바로 배정함. 시험할 때 무료 호출 횟수(하루 50회)를 아끼기 위함 |
 | AI 대기 중 화면 | **어려운 해결** | `assign_status`에 "2차 모델(모델 이름)의 응답을 기다리는 중… 37초 / 120초"처럼 몇 차 모델인지와 경과 시간을 1초마다 표시, 끝난 시도는 성공/실패와 이유를 목록으로 표시 |
 | DB(Supabase) 일시정지 막기 | **어려운 해결** | 외부 예약 서비스 GitHub Actions(`.github/workflows/keepalive.yml`)가 매일 두 번(09:17, 21:17 한국 시각) DB에 질의. 마지막 질의 시각은 관리자 화면 "설정 확인"에 표시 |
 
 ## 4. 쓴 모델 3개
-- 1차 `openai/gpt-oss-120b:free`, 2차 `nvidia/nemotron-3-super-120b-a12b:free`, 3차 `qwen/qwen3-coder:free`
+- 1차 `nvidia/nemotron-3-super-120b-a12b:free`, 2차 `openai/gpt-oss-120b:free`, 3차 `qwen/qwen3-coder:free`
 - (배포 때 오픈라우터에서 지금 쓸 수 있는지 확인하고, 바꾼 경우 여기를 고침. Streamlit Secrets의 `OPENROUTER_MODELS`로 바꿀 수 있음)
 - 무료 모델로 자동 연결하는 라우터(`openrouter/free`)는 쓰지 않음(코드에서 걸러 냄)
 

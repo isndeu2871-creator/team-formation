@@ -168,6 +168,18 @@ def whoami(user: dict) -> None:
 # ---------------------------------------------------------------------------
 # 학생 화면 (공고 2.8절). 3초마다 바뀐 부분만 다시 그림
 # ---------------------------------------------------------------------------
+def app_rows(state, apps: list[dict]) -> list[dict]:
+    """지원 기록 표(최근 순). 시각은 한국 시각으로 바꿔 보여 준다."""
+    rows = []
+    for a in reversed(apps):
+        s = state.students.get(a["student_id"], {})
+        agree = sum(1 for v in a["votes"].values() if v == "찬성")
+        rows.append({"지원자": s.get("name", ""), "팀": f"팀{a['team_no']}", "상태": a["status"],
+                     "이유": a.get("reason") or "", "찬성": agree,
+                     "지원 시각": to_kst(a.get("created_at")), "결과 시각": to_kst(a.get("decided_at"))})
+    return rows
+
+
 def member_line(m: dict) -> str:
     return f"- {md_escape(m['name'])} — {roles_text(m)}"
 
@@ -192,9 +204,7 @@ def student_panel(user_no: str) -> None:
         st.info(f"팀{my_pending['team_no']}에 지원하고 결과를 기다리는 중입니다.")
     else:
         st.write("아직 팀이 없음")
-    last = state.latest_app(me["id"])
-    if last and last["status"] != "대기":
-        st.caption(f"내 마지막 지원: 팀{last['team_no']} → {last['status']} ({last['reason'] or ''})")
+    mine_apps = [a for a in state.applications if a["student_id"] == me["id"]]
 
     can_apply_now = not state.closed and not my_team_no and not my_pending  # 2.8절: 이 경우 지원 단추 비활성화
     st.subheader("팀 목록")
@@ -250,6 +260,9 @@ def student_panel(user_no: str) -> None:
                         on_click=run_action,
                         args=(sv.vote, database, user_no, applicant["student_no"], False),
                     )
+    if mine_apps:
+        st.subheader("내 지원 기록")
+        st.dataframe(app_rows(state, mine_apps), hide_index=True)
     st.caption(f"화면은 {AUTO_REFRESH_SEC}초마다 자동으로 바뀐 부분을 다시 그립니다 · 마지막 갱신 {datetime.now(KST):%H:%M:%S}")
 
 
@@ -328,6 +341,13 @@ def run_assignment(database, status_box) -> None:
         return
 
     run_id = uuid.uuid4().hex[:8]
+    if not st.session_state.get("use_ai", True):  # 관리자가 'AI를 부름'을 끈 경우(시험할 때 무료 호출 횟수를 아끼기 위함)
+        sol = rules.solve(teams, unassigned)
+        sv.log_ai(database, run_id, 0, "앱 자체 배정", "성공", "관리자가 AI를 끄고 배정함", 0.0)
+        sv.save_proposal(database, sol, "앱 자체 배정(AI를 끔)")
+        st.session_state["assign_note"] = ("ok", ["- AI를 부르지 않고 앱이 모든 경우를 따져 배정함"])
+        set_result("승인", "배정안을 만듦(출처: 앱 자체 배정, AI를 끔). 확인한 뒤 '배정안 확정'을 누름")
+        return
     models = ai.resolve_models(secret("OPENROUTER_MODELS"))
     lines: list[str] = []
     with status_box:
@@ -405,12 +425,9 @@ def admin_live_panel() -> None:
             st.markdown("\n".join(f"- {md_escape(s['name'])} — {roles_text(s)}" for s in un))
         else:
             st.caption("없음")
-    pend = state.pending()
-    if pend:
-        st.markdown("**대기 중인 지원**")
-        for a in pend:
-            s = state.students[a["student_id"]]
-            st.caption(f"{s['name']} → 팀{a['team_no']} (찬성 {sum(1 for v in a['votes'].values() if v == '찬성')}표)")
+    if state.applications:
+        st.markdown("**지원 기록** (최근 순, 한국 시각)")
+        st.dataframe(app_rows(state, state.applications), hide_index=True)
     st.caption(f"{AUTO_REFRESH_SEC}초마다 자동 갱신 · 마지막 갱신 {datetime.now(KST):%H:%M:%S}")
 
 
@@ -433,6 +450,7 @@ def admin_view(database) -> None:
     st.button("모집 마감", key="admin_close", on_click=do_close)
 
     st.subheader("3. AI 배정과 확정")
+    st.checkbox("AI를 부름 (끄면 AI 없이 앱이 바로 배정함 · 무료 호출 횟수를 아낄 때만 끔)", value=True, key="use_ai")
     assign_clicked = st.button("AI 배정", key="admin_assign", type="primary")
     status_box = st.container(key="assign_status", border=True)
     if assign_clicked:
