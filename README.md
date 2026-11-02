@@ -9,7 +9,7 @@ AI의 배정안은 앱이 규칙으로 검사하며, AI가 실패하면 2차·3�
 ---
 
 ## 1. 배포 주소
-- (배포 후 기입)
+- https://team-formation-jukl2ja9rn2sxgc7fqvzsx.streamlit.app/
 
 ## 2. PRD와 구현 계획의 위치
 - PRD: [docs/PRD.md](docs/PRD.md)
