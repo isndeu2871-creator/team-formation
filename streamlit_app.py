@@ -168,6 +168,11 @@ def whoami(user: dict) -> None:
 # ---------------------------------------------------------------------------
 # 학생 화면 (공고 2.8절). 3초마다 바뀐 부분만 다시 그림
 # ---------------------------------------------------------------------------
+def refresh_notice() -> None:
+    """다른 사람의 변경 보기(어려운 해결)를 쓴다는 안내. 시범 앱처럼 화면 위쪽에 보여 준다."""
+    st.caption(f"🔄 화면은 {AUTO_REFRESH_SEC}초마다 저절로 바뀜(다른 사람의 지원과 투표가 자동으로 보임) · 마지막 갱신 {datetime.now(KST):%H:%M:%S}")
+
+
 def app_rows(state, apps: list[dict]) -> list[dict]:
     """지원 기록 표(최근 순). 시각은 한국 시각으로 바꿔 보여 준다."""
     rows = []
@@ -193,6 +198,7 @@ def student_panel(user_no: str) -> None:
         st.warning("명단이 바뀌어 이 계정이 없어짐. 로그아웃한 뒤 다시 로그인해야 함.")
         return
     render_result()
+    refresh_notice()
 
     my_team_no = state.member_team.get(me["id"])
     my_pending = state.pending_of(me["id"])
@@ -263,7 +269,6 @@ def student_panel(user_no: str) -> None:
     if mine_apps:
         st.subheader("내 지원 기록")
         st.dataframe(app_rows(state, mine_apps), hide_index=True)
-    st.caption(f"화면은 {AUTO_REFRESH_SEC}초마다 자동으로 바뀐 부분을 다시 그립니다 · 마지막 갱신 {datetime.now(KST):%H:%M:%S}")
 
 
 # ---------------------------------------------------------------------------
@@ -405,7 +410,8 @@ def render_proposal(state) -> None:
 def admin_live_panel() -> None:
     state = sv.load_state(get_db())
     flags = ["모집 마감됨" if state.closed else "모집 중", "배정 확정됨" if state.confirmed else "확정 전"]
-    st.subheader("지금 상태 · " + " · ".join(flags))
+    st.subheader("현황 · " + " · ".join(flags))
+    refresh_notice()
     cols = st.columns(min(4, max(1, len(state.teams))))
     for i, team in enumerate(state.teams):
         with cols[i % len(cols)]:
@@ -428,7 +434,6 @@ def admin_live_panel() -> None:
     if state.applications:
         st.markdown("**지원 기록** (최근 순, 한국 시각)")
         st.dataframe(app_rows(state, state.applications), hide_index=True)
-    st.caption(f"{AUTO_REFRESH_SEC}초마다 자동 갱신 · 마지막 갱신 {datetime.now(KST):%H:%M:%S}")
 
 
 def admin_view(database) -> None:
