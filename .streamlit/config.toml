@@ -1,0 +1,7 @@
+[client]
+# 오류가 나도 화면에 자세한 내용(DB 주소 등)이 나오지 않게 함
+showErrorDetails = false
+toolbarMode = "minimal"
+
+[server]
+runOnSave = false
