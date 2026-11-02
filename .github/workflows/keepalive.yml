@@ -11,7 +11,7 @@ on:
 
 jobs:
   ping-db:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # psql 이 들어 있는 이미지로 고정(ubuntu-latest 는 Ubuntu 26으로 바뀔 예정)
     timeout-minutes: 5
     steps:
       - name: DB에 질의 보내기
