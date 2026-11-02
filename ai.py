@@ -228,11 +228,22 @@ def assign(
     return sol, "앱 자체 배정(3차 모델까지 실패)"
 
 
-def check_models(models: list[str]) -> dict[str, bool | None]:
-    """오픈라우터 모델 목록에 그 모델이 지금 있는지(무료 호출 횟수를 쓰지 않음). 확인 못 하면 None."""
+def check_models(models: list[str]) -> tuple[dict[str, bool | None], list[str]]:
+    """오픈라우터 모델 목록에 그 모델이 지금 있는지(무료 호출 횟수를 쓰지 않음).
+
+    돌려주는 것: ({모델: 있음 True/없음 False/확인 못 함 None}, 지금 있는 무료(:free) 텍스트 모델 목록)
+    """
     try:
         resp = requests.get(MODELS_URL, timeout=15)
-        ids = {m["id"] for m in resp.json().get("data", [])}
-        return {m: (m in ids) for m in models}
+        data = resp.json().get("data", [])
     except Exception:
-        return {m: None for m in models}
+        return {m: None for m in models}, []
+    ids = {m.get("id", "") for m in data}
+    free = []
+    for m in data:
+        mid = m.get("id", "")
+        arch = m.get("architecture") or {}
+        outs = arch.get("output_modalities") or ["text"]
+        if mid.endswith(":free") and "text" in outs and mid != "openrouter/free":
+            free.append(mid)
+    return {m: (m in ids) for m in models}, sorted(free)

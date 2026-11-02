@@ -503,13 +503,17 @@ def admin_view(database) -> None:
         "\n".join(
             [f"- {n}: {'있음' if secret(n) else '없음'}" for n in ("OPENROUTER_API_KEY", "DATABASE_URL", "ADMIN_PASSWORD")]
             + [f"- {i}차 모델: `{m}`" for i, m in enumerate(models, start=1)]
+            + [f"- 모델 설정 출처: {'Secrets의 OPENROUTER_MODELS' if secret('OPENROUTER_MODELS') else '코드의 기본값(ai.DEFAULT_MODELS)'}"]
             + [f"- 외부 예약 서비스(GitHub Actions)의 마지막 DB 질의: {to_kst(state.settings.get('keepalive_at')) or '아직 없음'}"]
         )
     )
     if st.button("모델이 오픈라우터에 지금 있는지 확인(무료 호출 횟수를 쓰지 않음)", key="check_models"):
-        res = ai.check_models(models)
+        res, free = ai.check_models(models)
         for m, ok in res.items():
-            st.write(f"{m}: " + ("있음" if ok else ("없음 — 다른 모델로 바꿔야 함" if ok is False else "확인 못 함")))
+            st.markdown(f"- `{m}` → " + ("있음" if ok else ("**없음** — 다른 모델로 바꿔야 함" if ok is False else "확인 못 함")))
+        if free:
+            st.markdown(f"**지금 오픈라우터에 있는 무료 텍스트 모델 ({len(free)}개)** — Secrets의 OPENROUTER_MODELS 로 1·2·3차를 바꿀 수 있음")
+            st.code("\n".join(free), language=None)
 
 
 # ---------------------------------------------------------------------------
