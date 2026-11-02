@@ -367,8 +367,9 @@ def run_assignment(database, status_box) -> None:
 
     def log(attempt: int, model: str, outcome: str, detail: str, elapsed: float) -> None:
         sv.log_ai(database, run_id, attempt, model, outcome, detail, elapsed)
-        label = f"{attempt}차 모델 {model}" if attempt else "앱 자체 배정"
-        lines.append(f"- {label}: **{outcome}** ({elapsed:.1f}초) — {md_escape(detail)}")
+        # 모델 이름은 코드 꼴(`)로 감싼다: 이름 끝의 ':free' 뒤에 ':'가 오면 Streamlit이 그림 문자(🆓)로 바꾸기 때문
+        label = f"{attempt}차 모델 `{model}`" if attempt else "앱 자체 배정"
+        lines.append(f"- {label} → **{outcome}** ({elapsed:.1f}초) — {md_escape(detail)}")
         history.markdown("\n".join(lines))
 
     proposal, source = ai.assign(teams, unassigned, models, secret("OPENROUTER_API_KEY") or "", on_progress, log)

@@ -26,8 +26,9 @@ MODELS_URL = "https://openrouter.ai/api/v1/models"
 DEFAULT_MODELS = [
     # 2026-11-02 배포한 앱의 '모델 확인'에서 오픈라우터에 지금 있는 무료 모델 14개 가운데 고름
     # (공고 예시의 nemotron-3-super, gpt-oss-120b, qwen3-coder 의 :free 판은 이날 모두 없어졌음)
-    "google/gemma-4-31b-it:free",            # 1차: 지시를 따르는 일반 모델, 추론 모델이 아니라 빠름
-    "nvidia/nemotron-3-ultra-550b-a55b:free",  # 2차: 가장 큰 모델(느릴 수 있음)
+    # 쉬움 시나리오 시험(11/2 19:35)에서 gemma 는 HTTP 429 로 거절, nemotron-3-ultra 는 25초 만에 검사 통과 → 순서를 바꿈
+    "nvidia/nemotron-3-ultra-550b-a55b:free",  # 1차: 가장 큰 모델, 시험에서 검사 통과
+    "google/gemma-4-31b-it:free",            # 2차: 지시를 따르는 일반 모델(시험 때 429)
     "nvidia/nemotron-3.5-lightning:free",    # 3차: 빠른 모델
 ]
 TIMEOUT_SEC = 120  # 모델 하나의 전체 대기 시간 한도

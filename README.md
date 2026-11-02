@@ -30,7 +30,8 @@ AI의 배정안은 앱이 규칙으로 검사하며, AI가 실패하면 2차·3�
 | DB(Supabase) 일시정지 막기 | **어려운 해결** | 외부 예약 서비스 GitHub Actions(`.github/workflows/keepalive.yml`)가 매일 두 번(09:17, 21:17 한국 시각) DB에 질의. 마지막 질의 시각은 관리자 화면 "설정 확인"에 표시 |
 
 ## 4. 쓴 모델 3개
-- 1차 `google/gemma-4-31b-it:free`, 2차 `nvidia/nemotron-3-ultra-550b-a55b:free`, 3차 `nvidia/nemotron-3.5-lightning:free`
+- 1차 `nvidia/nemotron-3-ultra-550b-a55b:free`, 2차 `google/gemma-4-31b-it:free`, 3차 `nvidia/nemotron-3.5-lightning:free`
+- (11/2 쉬움 시나리오 시험에서 gemma가 HTTP 429로 거절하고 nemotron-3-ultra가 검사를 통과해, 1차와 2차의 순서를 바꿈)
 - 처음에는 공고 예시와 시연 동영상의 모델(`nvidia/nemotron-3-super-120b-a12b:free` 등)을 썼으나, 11/2 배포한 앱의 "모델 확인"에서 3개 모두 오픈라우터에 없다고 나와(화면 `img/model-check-missing.png`) 그날 있는 무료 모델 가운데서 다시 고름(화면 `img/model-check-free-list.png`)
 - Streamlit Secrets의 `OPENROUTER_MODELS`(쉼표로 구분)로 코드를 고치지 않고 바꿀 수 있음
 - 무료 모델로 자동 연결하는 라우터(`openrouter/free`)는 쓰지 않음(코드에서 걸러 냄)
