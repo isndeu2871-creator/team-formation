@@ -1,0 +1,11 @@
+# 비밀 값: 절대 깃허브에 올리지 않음
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+# 파이썬 부산물
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.zip
