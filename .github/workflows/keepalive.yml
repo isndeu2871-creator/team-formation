@@ -1,0 +1,28 @@
+# Supabase 무료 프로젝트가 1주일 동안 DB 요청이 적어 일시정지되지 않도록,
+# 외부 예약 서비스(GitHub Actions)가 매일 두 번 DB에 질의를 보낸다(공고 3장 'DB 일시정지'의 어려운 해결).
+# 저장소 Settings > Secrets and variables > Actions 에 DATABASE_URL 을 넣어야 동작한다(값은 로그에 나오지 않음).
+name: DB 깨우기 (Supabase 일시정지 막기)
+
+on:
+  schedule:
+    - cron: "17 0 * * *"   # 매일 09:17 (한국 시각)
+    - cron: "17 12 * * *"  # 매일 21:17 (한국 시각)
+  workflow_dispatch:       # Actions 화면에서 직접 실행해 볼 수 있음
+
+jobs:
+  ping-db:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: DB에 질의 보내기
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DATABASE_URL secret 이 없음: 저장소 Settings > Secrets and variables > Actions 에 넣어야 함"
+            exit 1
+          fi
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q \
+            -c "insert into tf_settings (key, value) values ('keepalive_at', to_json(now())#>>'{}') on conflict (key) do update set value = excluded.value;" \
+            -c "select count(*) as students from tf_students where not is_admin;"
+          echo "DB 질의 완료"
